@@ -1,0 +1,188 @@
+########################
+#####   Texture    #####
+########################
+
+texture {
+    skysphere				Src/Assets/Textures/skysphere.png
+    ground_basecolor		Src/Assets/Textures/ground_basecolor.png
+    ground_normal			Src/Assets/Textures/ground_normal.png
+}
+
+########################
+#####    Shader    #####
+########################
+
+shader {
+    skyShader   Src/Assets/Shaders/sky_vs.hlsl      Src/Assets/Shaders/sky_ps.hlsl
+    smShader    Src/Assets/Shaders/sm_vs.hlsl       Src/Assets/Shaders/sm_ps.hlsl
+    smiShader   Src/Assets/Shaders/sm_i_vs.hlsl		Src/Assets/Shaders/sm_ps.hlsl
+    amShader    Src/Assets/Shaders/am_vs.hlsl		Src/Assets/Shaders/am_ps.hlsl
+}
+
+########################
+#####     PSO      #####
+########################
+
+pso {
+    smPSO	    smShader	    s       depth_less          write
+    smiPSO	    smiShader       si      depth_less          write
+    amPSO	    amShader		a       depth_less          write
+    skyPSO	    skyShader		s       depth_less_equal	nowrite
+    fpsPSO	    amShader		a       depth_always		nowrite
+}
+
+########################
+#####   Material   #####
+########################
+
+material skyMaterial {
+    shader      skyShader       skyCB
+    pso         skyPSO
+    texture     albedoTex       skysphere
+}
+
+material groundMaterial {
+    shader      smShader    smCB
+    pso         smPSO
+    texture     albedoTex   ground_basecolor
+    texture     normalTex   ground_normal
+    uv          100         100
+}
+
+material fpsWeaponMaterial {
+    shader      amShader        amCB
+    pso         fpsPSO
+}
+
+material staticModelMaterial {
+    shader      smShader    smCB
+    pso         smPSO
+    alphaTest   1
+}
+
+material animatedModelMaterial {
+    shader      amShader    amCB
+    pso         amPSO
+}
+
+material plantsMaterial {
+    shader      smShader       smCB
+    pso         smPSO
+    alphaTest   1
+    vsAnim      1
+}
+
+material plantsInstancedMaterial {
+    shader      smiShader   smCB
+    pso         smiPSO
+    alphaTest   1
+    vsAnim      1
+}
+
+
+########################
+#####    Light     #####
+########################
+
+light {
+    skylight        1 0.95 0.85           0.12
+
+    # <type>        <position>      <color>         <range>     <intensity>
+    pointlight      0  6 0          1 0.72  0.45      30          8
+    pointlight     -2  3 0          0.6 0.7 1         25          3
+}
+
+########################
+#####    Scene     #####
+########################
+
+scene {
+    object Player {
+        transform 0 0 0   0 0 0 1   1.2 2 1.2
+
+        component PlayerInputControllerComponent
+        component CameraComponent
+        component WeaponControllerComponent     04~idle 08~fire 17~reload
+        component FPSWeaponRenderComponent      Src/Assets/Models/Uzi.gem   fpsWeaponMaterial
+        component ColliderComponent             1.2 2 1.2
+    }
+
+    object Cow {
+        transform -20 0 20   0 0 0 1   0.015 0.015 0.015
+        component CowControllerComponent      idle hitreact death
+        component AnimatedMeshRenderComponent Src/Assets/Models/Cow-brown.gem animatedModelMaterial
+        component ColliderComponent             2 2.5 3
+    }
+
+
+    object Cow {
+        transform 10 0 -6   0 0 0 1   0.02 0.02 0.02
+        component CowControllerComponent      idle hitreact death
+        component AnimatedMeshRenderComponent Src/Assets/Models/Cow-brown.gem animatedModelMaterial
+        component ColliderComponent             2 2.5 3
+    }
+
+    object Cat {
+        transform 6 0 8   0 0.131 0 0.991   0.02 0.02 0.02
+        component CowControllerComponent      idle hitreact death
+        component AnimatedMeshRenderComponent Src/Assets/Models/Cat-Siamese.gem animatedModelMaterial
+        component ColliderComponent             1 1 1
+    }
+
+    object ground {
+        transform 0 0 0   0 0 0 1   500 1 500
+        component StaticMeshRenderComponent primitive:plane groundMaterial
+    }
+
+    object tree {
+        transform 8 0 12   0 0 0 1   0.02 0.02 0.02
+        component StaticMeshRenderComponent Src/Assets/Models/beech.gem plantsMaterial
+        component ColliderComponent 1 9 1
+    }
+
+    object tree {
+        transform 21 0 17   0 0 0 1   0.02 0.02 0.02
+        component StaticMeshRenderComponent Src/Assets/Models/beech.gem plantsMaterial
+        component ColliderComponent 1 9 1
+    }
+
+    object tree {
+        transform 15 0 16   0 0 0 1   0.02 0.02 0.02
+        component StaticMeshRenderComponent Src/Assets/Models/beech.gem plantsMaterial
+        component ColliderComponent 1 9 1
+    }
+
+    object tree {
+        transform 15 0 8   0 0 0 1   0.02 0.02 0.02
+        component StaticMeshRenderComponent Src/Assets/Models/beech.gem plantsMaterial
+        component ColliderComponent 1 9 1
+    }
+
+    object Sky {
+        component SkyRenderComponent primitive:skySphere skyMaterial
+    }
+
+}
+
+########################
+#####   Instance   #####
+########################
+
+static_instances {
+
+    # flowers
+    static_mesh Src/Assets/Models/flower1.gem plantsInstancedMaterial {
+        transform   0.1 0 1       0 0 0 1   0.01 0.01 0.01
+        transform   2.1 0 2.3     0 0 0 1   0.01 0.01 0.01
+        transform   1.6 0 3.2     0 0 0 1   0.01 0.01 0.01
+        transform   2.8 0 1.4     0 0 0 1   0.01 0.01 0.01
+        transform   3.2 0 3.9     0 0 0 1   0.01 0.01 0.01
+        transform   5.3 0 4.3     0 0 0 1   0.01 0.01 0.01
+        transform  -3.1 0 2.3     0 0 0 1   0.01 0.01 0.01
+        transform  -2.0 0 3.6     0 0 0 1   0.01 0.01 0.01
+        transform  -5.3 0 4.1     0 0 0 1   0.01 0.01 0.01
+        transform  -9.1 0 6.3     0 0 0 1   0.01 0.01 0.01
+        transform  -3.9 0 2.1     0 0 0 1   0.01 0.01 0.01
+        transform  -6.9 0 8.4     0 0 0 1   0.01 0.01 0.01
+    }
+}
