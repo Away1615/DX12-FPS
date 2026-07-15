@@ -3,6 +3,7 @@
 #include <map>
 #include "Shader.h"
 #include <cassert>
+#include <memory>
 #include "../../Foundation/DX12/DX12Resources.h"
 #include "../../Foundation/DX12/DX12RootSignature.h"
 
@@ -10,7 +11,7 @@ class ShaderManager {
 private:
 
 public:
-    std::map<std::string, Shader*> shaders;
+    std::map<std::string, std::unique_ptr<Shader>> shaders;
 
     Shader* loadShader(
         const std::string& name,
@@ -23,9 +24,10 @@ public:
             return nullptr;
         }
 
-        Shader* shader = new Shader();
+        auto ownedShader = std::make_unique<Shader>();
+        Shader* shader = ownedShader.get();
         shader->load(device, vs, ps);
-        shaders[name] = shader;
+        shaders[name] = std::move(ownedShader);
         auto& rootSig = rootSignature;
 
         shader->textureRootIndices["albedoTex"] = rootSig.rpSRV_Albedo;
@@ -34,7 +36,7 @@ public:
     }
 
     Shader* find(const std::string& name) {
-        Shader* shader = shaders[name];
+        Shader* shader = shaders[name].get();
         assert(shader);
         return shader;
     }
@@ -67,9 +69,4 @@ public:
         find(shaderName)->updatePS(cbName, vName, data);
     }
 
-    ~ShaderManager() {
-        for (auto& shaderPair : shaders) {
-            delete shaderPair.second;
-        }
-    }
 };

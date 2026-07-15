@@ -1,6 +1,8 @@
 #pragma once
 #include <map>
 #include <string>
+#include <memory>
+#include <vector>
 #include "../Model/ModelData.h"
 #include "Material.h"
 #include "../RenderContext.h"
@@ -8,20 +10,22 @@
 class Material;
 
 class MaterialManager {
-	std::map<std::string, Material*> materials;
+	std::map<std::string, std::unique_ptr<Material>> materials;
+	std::vector<std::unique_ptr<Material>> instances;
 
 public:
-	bool add(const std::string& name, Material* material) {
-		auto [it, inserted] = materials.emplace(name, material);
+	Material* add(const std::string& name, std::unique_ptr<Material> material) {
+		Material* result = material.get();
+		auto [it, inserted] = materials.emplace(name, std::move(material));
 		assert(inserted && "Material already exists");
-		return inserted;
+		return inserted ? result : nullptr;
 	}
 
 	Material* find(const std::string& name) {
 		auto it = materials.find(name);
 
 		if (it != materials.end()) {
-			return it->second;
+			return it->second.get();
 		}
 		else {
 			return nullptr;
@@ -34,7 +38,8 @@ public:
 		Material* base = find(subMesh.materialKey);
 
 		// One mesh match one material
-		Material* instance = new Material(*base);
+		auto ownedInstance = std::make_unique<Material>(*base);
+		Material* instance = ownedInstance.get();
 
 		// apply the model texture
 		if (!subMesh.albedoTex.empty()) {
@@ -45,6 +50,7 @@ public:
 			instance->addTexture("normalTex", subMesh.normalTex);
 		}
 
+		instances.push_back(std::move(ownedInstance));
 		return instance;
 	}
 };

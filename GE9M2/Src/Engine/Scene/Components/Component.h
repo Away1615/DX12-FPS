@@ -29,6 +29,7 @@ protected:
     GameObject* _owner = nullptr;
 
 public:
+	virtual ~Component() = default;
 
     void setOwner(GameObject* owner);
 

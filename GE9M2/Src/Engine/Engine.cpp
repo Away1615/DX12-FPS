@@ -6,17 +6,19 @@ Engine::Engine(HWND hwnd, int width, int height, Game* game)
 	_hwnd(hwnd),
 	_width(width),
 	_height(height),
+	_game(game),
 	_renderContext(hwnd, width, height),
 	_loader(_renderContext),
-	_scene(this),
-	_game(game)
+	_scene(this)
 {
 	if (_game) {
 		_game->onInit(*this, _scene);
 	}
 }
 
-Engine::~Engine() {}
+Engine::~Engine() {
+	flush();
+}
 
 void Engine::beginFrame() {
 	_renderContext.renderer().beginFrame();
@@ -25,8 +27,12 @@ void Engine::beginFrame() {
 void Engine::update(float dt) {
 	_time += dt;
 
-	beginFrame();
 	_scene.update(dt);
+	if (_shouldQuit) {
+		return;
+	}
+
+	beginFrame();
 	_scene.render(_renderContext);
 	endFrame();
 }

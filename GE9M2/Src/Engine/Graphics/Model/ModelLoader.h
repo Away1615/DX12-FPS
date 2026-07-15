@@ -1,18 +1,24 @@
 #pragma once
 #include <string>
 #include <map>
+#include <memory>
+#include <vector>
 #include "../../../../Third_Party/GEMLoader.h"
 
 class RenderContext;
 class MeshLibrary;
+class Mesh;
 class ModelData;
+class AnimationData;
 
 class ModelLoader {
 private:
     const std::string                   _prefix = "primitive:";
-    MeshLibrary*                        _meshLib;
+    std::unique_ptr<MeshLibrary>        _meshLib;
     RenderContext&                      _renderContext;
-    std::map<std::string, ModelData*>   _loadedModelCache;
+    std::vector<std::unique_ptr<Mesh>> _meshes;
+    std::vector<std::unique_ptr<AnimationData>> _animations;
+    std::map<std::string, std::unique_ptr<ModelData>> _loadedModelCache;
     GEMLoader::GEMModelLoader           _loader;
 
 public:

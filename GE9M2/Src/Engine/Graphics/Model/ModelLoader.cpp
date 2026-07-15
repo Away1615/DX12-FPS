@@ -7,23 +7,18 @@
 #include "../../../../Third_Party/GEMLoader.h"
 
 ModelLoader::ModelLoader(RenderContext& renderContext) : _renderContext(renderContext) {
-    _meshLib = new MeshLibrary(renderContext);
+    _meshLib = std::make_unique<MeshLibrary>(renderContext);
 }
 
-ModelLoader::~ModelLoader() {
-    for (auto const& pair : _loadedModelCache) {
-        delete pair.second;
-    }
-    _loadedModelCache.clear();
-}
+ModelLoader::~ModelLoader() = default;
 
-MeshLibrary* ModelLoader::meshLib() { return _meshLib; }
+MeshLibrary* ModelLoader::meshLib() { return _meshLib.get(); }
 
 ModelData* ModelLoader::loadModel(const std::string& modelPath, const std::string& materialKey) {
 
     // Load from cache
     if (_loadedModelCache.count(modelPath))
-        return _loadedModelCache[modelPath];
+        return _loadedModelCache[modelPath].get();
 
     // Load from primitive
     if (modelPath.starts_with(_prefix))
@@ -38,18 +33,20 @@ ModelData* ModelLoader::loadModel(const std::string& modelPath, const std::strin
 ModelData* ModelLoader::loadPrimitiveModel(const std::string& modelPath, const std::string& materialKey) {
     std::string primitiveName = modelPath.substr(_prefix.size());
 
-    ModelData* data = new ModelData();
+    auto ownedData = std::make_unique<ModelData>();
+    ModelData* data = ownedData.get();
     Mesh* mesh = &_meshLib->getMesh(primitiveName);
 
     data->subMeshes.push_back({ mesh, materialKey,"", "" });
 
-    _loadedModelCache[modelPath] = data;
+    _loadedModelCache[modelPath] = std::move(ownedData);
     return data;
 
 }
 
 ModelData* ModelLoader::loadStaticGEMModel(const std::string& modelPath, const std::string& materialKey) {
-    ModelData* data = new ModelData();
+    auto ownedData = std::make_unique<ModelData>();
+    ModelData* data = ownedData.get();
     std::vector<GEMLoader::GEMMesh> gemmeshes;
 
     _loader.load(modelPath, gemmeshes);
@@ -59,7 +56,8 @@ ModelData* ModelLoader::loadStaticGEMModel(const std::string& modelPath, const s
     // ------------ Load Mesh & Textures ------------
 
     for (auto& gemmesh : gemmeshes) {
-        Mesh* subMesh = new Mesh();
+        auto ownedSubMesh = std::make_unique<Mesh>();
+        Mesh* subMesh = ownedSubMesh.get();
 
         // Load Meshes
         std::vector<STATIC_VERTEX> vertices;
@@ -100,13 +98,16 @@ ModelData* ModelLoader::loadStaticGEMModel(const std::string& modelPath, const s
         }
 
         data->subMeshes.push_back({ subMesh, materialKey, albedo, nh });
+        _meshes.push_back(std::move(ownedSubMesh));
     }
 
+    _loadedModelCache[modelPath] = std::move(ownedData);
     return data;
 }
 
 ModelData* ModelLoader::loadAnimatedGEMModel(const std::string& modelPath, const std::string& materialKey) {
-    ModelData* data = new ModelData();
+    auto ownedData = std::make_unique<ModelData>();
+    ModelData* data = ownedData.get();
     std::vector<GEMLoader::GEMMesh> gemmeshes;
     GEMLoader::GEMAnimation gemanimation;
 
@@ -117,7 +118,8 @@ ModelData* ModelLoader::loadAnimatedGEMModel(const std::string& modelPath, const
     // ------------ Load Mesh & Textures ------------
 
     for (auto& gemmesh : gemmeshes) {
-        Mesh* subMesh = new Mesh();
+        auto ownedSubMesh = std::make_unique<Mesh>();
+        Mesh* subMesh = ownedSubMesh.get();
 
         // Load Meshes
         std::vector<ANIMATED_VERTEX> animatedVertices;
@@ -157,10 +159,12 @@ ModelData* ModelLoader::loadAnimatedGEMModel(const std::string& modelPath, const
             );
         }
         data->subMeshes.push_back({ subMesh, materialKey, texName, "" });
+        _meshes.push_back(std::move(ownedSubMesh));
     }
 
     // ------------ Load Animation ------------
-    data->animation = new AnimationData();
+    auto ownedAnimation = std::make_unique<AnimationData>();
+    data->animation = ownedAnimation.get();
 
     // Load globalInverse
     memcpy(&data->animation->skeleton.globalInverse, &gemanimation.globalInverse, sizeof(Matrix));
@@ -196,7 +200,8 @@ ModelData* ModelLoader::loadAnimatedGEMModel(const std::string& modelPath, const
         data->animation->animations.insert({ name, aseq });
     }
 
-    _loadedModelCache.insert({ modelPath, data });
+    _animations.push_back(std::move(ownedAnimation));
+    _loadedModelCache[modelPath] = std::move(ownedData);
     return data;
 }
 

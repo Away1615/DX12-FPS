@@ -82,8 +82,7 @@ void LevelLoader::openBlock(const std::string& line, std::vector<BlockContext>& 
 
         auto& matMgr = engine.renderContext().materialManager();
 
-        Material* mat = new Material();
-        matMgr.add(matName, mat);
+        Material* mat = matMgr.add(matName, std::make_unique<Material>());
         ctx.material = mat;
     }
 

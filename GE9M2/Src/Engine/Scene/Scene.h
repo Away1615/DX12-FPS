@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <memory>
 #include "../Graphics/Material/Material.h"
 #include "Components/Component.h"
 #include "Light.h"
@@ -13,7 +14,7 @@ class RenderContext;
 
 class Scene {
 private:
-    std::vector<GameObject*> _objects;
+    std::vector<std::unique_ptr<GameObject>> _objects;
     std::vector<PointLight> _lights;
     std::vector<StaticMeshInstance> _staticMeshInstances;
 
@@ -45,7 +46,7 @@ public:
 
     void setMainCamera(CameraComponent* cam);
 
-    const std::vector<GameObject*>& objects() const;
+    const std::vector<std::unique_ptr<GameObject>>& objects() const;
 
     CameraComponent* mainCamera();
 

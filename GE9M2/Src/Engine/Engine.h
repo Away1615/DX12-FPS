@@ -12,10 +12,10 @@ private:
 	int             _height = 0;
 	float			_time = 0;
 	HWND            _hwnd = nullptr;
-	Scene           _scene;
-	Game*			_game;
+	Game*			_game = nullptr;
 	RenderContext   _renderContext;
 	ModelLoader		_loader;
+	Scene           _scene;
 
 	bool _shouldQuit = false;
 	bool _showCollisionBoxes = true;

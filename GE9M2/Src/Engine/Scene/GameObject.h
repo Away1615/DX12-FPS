@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <memory>
 
 class Component;
 class Scene;
@@ -11,8 +12,8 @@ class CameraComponent;
 
 class GameObject {
 protected:
-    std::vector<Component*> _components;
-    Transform* _transform = nullptr;
+    std::vector<std::unique_ptr<Component>> _components;
+    std::unique_ptr<Transform> _transform;
 
     Scene* _scene = nullptr;
     Engine* _engine = nullptr;
@@ -35,9 +36,10 @@ public:
 
     template<typename T, typename... Args>
     T* addComponent(Args&&... args) {
-        T* component = new T(std::forward<Args>(args)...);
+        auto ownedComponent = std::make_unique<T>(std::forward<Args>(args)...);
+        T* component = ownedComponent.get();
         component->setOwner(this);
-        _components.push_back(component);
+        _components.push_back(std::move(ownedComponent));
 
         component->onStart();
         return component;
@@ -45,8 +47,8 @@ public:
 
     template<typename T>
     T* getComponent() {
-        for (Component* component : _components) {
-            if (auto result = dynamic_cast<T*>(component))
+        for (const auto& component : _components) {
+            if (auto result = dynamic_cast<T*>(component.get()))
                 return result;
         }
         return nullptr;
@@ -54,7 +56,7 @@ public:
 
     void update(float dt);
 
-    const std::vector<Component*>& components() const;
+    const std::vector<std::unique_ptr<Component>>& components() const;
 
     void setName(std::string name) { _debugName = name; }
 };

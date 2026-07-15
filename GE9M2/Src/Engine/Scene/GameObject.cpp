@@ -5,14 +5,10 @@
 #include "../Foundation/Base/Transform.h"
 
 GameObject::GameObject() {
-    _transform = new Transform();
+    _transform = std::make_unique<Transform>();
 }
 
-GameObject::~GameObject() {
-    for (Component* c : _components)
-        delete c;
-    delete _transform;
-}
+GameObject::~GameObject() = default;
 
 void GameObject::setContext(Scene* scene, Engine* engine) {
     _scene = scene;
@@ -29,10 +25,10 @@ CameraComponent* GameObject::mainCamera() {
 }
 
 void GameObject::update(float dt) {
-    for (Component* c : _components)
-        c->onUpdate(dt);
+    for (const auto& component : _components)
+        component->onUpdate(dt);
 }
 
-const std::vector<Component*>& GameObject::components() const {
+const std::vector<std::unique_ptr<Component>>& GameObject::components() const {
     return _components;
 }

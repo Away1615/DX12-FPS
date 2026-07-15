@@ -1,12 +1,13 @@
 ﻿#pragma once
 #include <map>
 #include <iostream>
+#include <memory>
 #include "Texture.h"
 
 class TextureManager {
 
 public:
-	std::map<std::string, Texture*> textures;
+	std::map<std::string, std::unique_ptr<Texture>> textures;
 
 	TextureManager() {}
 
@@ -20,12 +21,13 @@ public:
 	) {
 		auto it = textures.find(name);
 		if (it != textures.end()) {
-			return it->second;
+			return it->second.get();
 		}
 			
-		Texture* t = new Texture();
+		auto ownedTexture = std::make_unique<Texture>();
+		Texture* t = ownedTexture.get();
 		t->init(device, uploader, srvHeap, file, usage);
-		textures[name] = t;
+		textures[name] = std::move(ownedTexture);
 		assert(t);
 		return t;
 	}
@@ -36,12 +38,6 @@ public:
 			return find("__default");
 		}
 		return it->second->heapOffset;
-	}
-
-	~TextureManager() {
-		for (auto const& pair : textures) {
-			delete pair.second;
-		}
 	}
 };
 

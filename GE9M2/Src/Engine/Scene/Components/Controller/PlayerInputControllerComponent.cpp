@@ -82,7 +82,8 @@ void PlayerInputControllerComponent::onUpdate(float dt) {
 
         // -------- X axis --------
         transform().position.x = newPos.x;
-        for (auto* obj : scene()->objects()) {
+        for (const auto& ownedObj : scene()->objects()) {
+            auto* obj = ownedObj.get();
             if (obj == _owner) continue;
 
             auto* other = obj->getComponent<ColliderComponent>();
@@ -96,7 +97,8 @@ void PlayerInputControllerComponent::onUpdate(float dt) {
 
         // -------- Z axis --------
         transform().position.z = newPos.z;
-        for (auto* obj : scene()->objects()) {
+        for (const auto& ownedObj : scene()->objects()) {
+            auto* obj = ownedObj.get();
             if (obj == _owner) continue;
 
             auto* other = obj->getComponent<ColliderComponent>();

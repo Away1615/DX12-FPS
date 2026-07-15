@@ -11,15 +11,13 @@
 
 Scene::Scene(Engine* engine) : _engine(engine) {}
 
-Scene::~Scene() {
-    for (auto* obj : _objects)
-        delete obj;
-}
+Scene::~Scene() = default;
 
 GameObject* Scene::createObject() {
-    GameObject* obj = new GameObject();
+    auto ownedObject = std::make_unique<GameObject>();
+    GameObject* obj = ownedObject.get();
     obj->setContext(this, _engine);
-    _objects.push_back(obj);
+    _objects.push_back(std::move(ownedObject));
     return obj;
 }
 
@@ -87,7 +85,7 @@ void Scene::uploadLights(RenderContext& ctx) {
 }
 
 void Scene::update(float dt) {
-    for (auto& obj : _objects)
+    for (const auto& obj : _objects)
         obj->update(dt);
 }
 
@@ -108,9 +106,9 @@ void Scene::render(RenderContext& renderContext) {
 }
 
 void Scene::renderLayer(RenderContext& renderContext, RenderLayer layer) {
-    for (auto* obj : _objects) {
-        for (auto* comp : obj->components()) {
-            if (auto* render = dynamic_cast<Renderable*>(comp)) {
+    for (const auto& obj : _objects) {
+        for (const auto& comp : obj->components()) {
+            if (auto* render = dynamic_cast<Renderable*>(comp.get())) {
                 if (render->layer() == layer)
                     render->onRender(renderContext);
             }
@@ -122,7 +120,7 @@ void Scene::setMainCamera(CameraComponent* cam) {
     _mainCamera = cam;
 }
 
-const std::vector<GameObject*>& Scene::objects() const {
+const std::vector<std::unique_ptr<GameObject>>& Scene::objects() const {
     return _objects;
 }
 

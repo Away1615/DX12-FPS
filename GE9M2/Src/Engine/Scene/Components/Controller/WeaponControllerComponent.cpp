@@ -75,7 +75,8 @@ void WeaponControllerComponent::fireRaycast()
     float closestT = FLT_MAX;
     GameObject* hitObj = nullptr;
 
-    for (auto* obj : scene->objects()) {
+    for (const auto& ownedObj : scene->objects()) {
+        auto* obj = ownedObj.get();
         auto* collider = obj->getComponent<ColliderComponent>();
         if (!collider) continue;
         if (obj == _owner) continue;
