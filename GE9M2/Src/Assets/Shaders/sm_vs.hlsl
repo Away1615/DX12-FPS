@@ -4,7 +4,7 @@ cbuffer smCB : register(b0) {
     float4x4 W;
     float4x4 VP;
     
-    float3 time;
+    float time;
     int useVSAnim;
 };
 
@@ -32,7 +32,7 @@ PS_INPUT VS(VS_INPUT input) {
         float windStrength = 0.2f;
         float windSpeed = 1.2f;
 
-        float t = time.x * windSpeed;
+        float t = time * windSpeed;
         pos.x += sin(t) * windStrength;
     }
     
