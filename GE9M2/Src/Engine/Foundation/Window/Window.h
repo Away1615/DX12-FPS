@@ -36,7 +36,7 @@ public:
     ~Window() = default;
 
     void create(int x, int y, int w, int h, const std::string& title, bool fullWindow);
-    void processMessages();
+    bool processMessages();
     void handleMouseMove(LPARAM lParam);
 
 private:

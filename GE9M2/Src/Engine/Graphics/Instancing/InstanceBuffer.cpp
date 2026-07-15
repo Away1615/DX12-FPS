@@ -37,12 +37,12 @@ void InstanceBuffer::create(ID3D12Device* device, int maxCount) {
 
 void InstanceBuffer::upload(const InstanceData* data, int count) {
     assert(_buffer);
-    _count = count;
-    if (count == 0 || count > _maxCount)
+    _count = count < _maxCount ? count : _maxCount;
+    if (_count == 0)
         return;
 
     void* mapped = nullptr;
     _buffer->Map(0, nullptr, &mapped);
-    memcpy(mapped, data, sizeof(InstanceData) * count);
+    memcpy(mapped, data, sizeof(InstanceData) * _count);
     _buffer->Unmap(0, nullptr);
 }

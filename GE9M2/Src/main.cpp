@@ -22,8 +22,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	Timer timer;
 
-	while (!engine.shouldQuit()) {
-		window.processMessages();
+	while (!engine.shouldQuit() && window.processMessages()) {
 		engine.update(timer.dt());
 	};
 	return 0;

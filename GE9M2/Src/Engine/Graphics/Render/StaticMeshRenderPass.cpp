@@ -20,6 +20,7 @@ void StaticMeshRenderPass::render(Scene& scene, RenderContext& ctx) {
         if (instanceCount == 0) continue;
 
         ctx.instanceBuffer().upload(inst.worlds.data(), instanceCount);
+        instanceCount = ctx.instanceBuffer().count();
 
         for (int i = 0; i < inst.model->subMeshes.size(); ++i) {
             inst.materials[i]->apply(ctx, param);

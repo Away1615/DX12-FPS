@@ -2,6 +2,7 @@
 #include "Texture.h"
 #include <d3d12.h>
 #include <string>
+#include <stdexcept>
 #include <wrl/client.h>
 #include "../RenderContext.h"
 #include "../../../../Third_Party/stb_image.h"
@@ -24,6 +25,9 @@ void Texture::init(
 		: DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	unsigned char* texels = stbi_load(filename.c_str(), &width, &height, &channels, 4);
+	if (!texels) {
+		throw std::runtime_error("Failed to load texture: " + filename);
+	}
 	channels = 4;
 
 	// Create GPU Texture

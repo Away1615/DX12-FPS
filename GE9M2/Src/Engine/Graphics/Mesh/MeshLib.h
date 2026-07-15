@@ -24,7 +24,7 @@ public:
 		generatePlane(ctx);
 		generateCube(ctx);
 		generateDebugBox(ctx);
-		generateSkySphere(ctx, 2000, 2000, 10000);
+		generateSkySphere(ctx, 64, 64, 10000);
     }
 
     void generatePlane(RenderContext& ctx) {

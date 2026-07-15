@@ -81,12 +81,16 @@ void Window::create(
     }
 }
 
-void Window::processMessages() {
+bool Window::processMessages() {
     MSG msg;
     while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+        if (msg.message == WM_QUIT) {
+            return false;
+        }
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
+    return true;
 }
 
 void Window::handleMouseMove(LPARAM lParam) {
